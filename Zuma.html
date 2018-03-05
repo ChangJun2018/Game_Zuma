@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>简易祖玛</title>
+    <style>
+        *{margin:0;padding: 0;}
+        body{background: black;}
+        #div1{background: white;width: 600px; margin: 20px auto;}
+    </style>
+</head>
+<body>
+    <div id="div1">
+        <canvas id="cl" width="600" height="600"></canvas>
+    </div>
+</body>
+<script>
+    window.onload=function () {
+        var oC=document.getElementById('cl');  //获取canvas元素
+        var oGC=oC.getContext('2d');  //开始绘制
+        var i=0;
+
+        var yImg=new Image();   //canvas图片引用必须加载才可以引用
+        yImg.src='person.png';
+        yImg.onload=function () {
+            setInterval(function () {
+                //首先绘制球的路径
+                oGC.clearRect(0,0,oC.width,oC.height)
+                //开始绘制路径
+                oGC.beginPath();//开始绘制
+                //弧度=角度*Math.PI/180
+                oGC.arc(300,200,200,-90*Math.PI/180,180*Math.PI/180,false)//绘制圆形，分别是中心x坐标、y坐标、圆半径、起始角、结束角、可选（规定应该逆时针还是顺时针绘图。False = 顺时针，true = 逆时针。）
+                //oGC.closePath();//结束绘制
+                oGC.stroke();//绘制线
+                //大圆的路径
+                oGC.beginPath();
+                oGC.arc(250,200,150,180*Math.PI/180,360*Math.PI/180,false)
+                oGC.stroke();
+                //小圆的路径
+                oGC.beginPath();
+                oGC.arc(400,200,20,0*Math.PI/180,360 *Math.PI/180,false)
+                oGC.stroke();
+
+                for(var i=0;i<ball.length;i++){
+
+                    oGC.beginPath();
+                    oGC.moveTo(ball[i].x,ball[i].y)
+                    oGC.arc(ball[i].x,ball[i].y,20,0*Math.PI/180,360 *Math.PI/180,false)
+                    oGC.fill();
+                };
+                //小青蛙图片的引用
+                oGC.save();
+                oGC.translate(300,200);  //坐标中心
+                oGC.rotate(iRotate);  //跟着鼠标旋转弧度
+                oGC.translate(-40,-40);
+                oGC.drawImage(yImg,0,0);
+                oGC.restore();
+
+                //绘制小青蛙吐出的子弹
+                for(var i=0;i<bullet.length;i++){
+
+                    oGC.save();
+                    oGC.fillStyle='red';
+                    oGC.beginPath();
+                    oGC.moveTo(bullet[i].x,bullet[i].y)
+                    oGC.arc(bullet[i].x,bullet[i].y,20,0*Math.PI/180,360 *Math.PI/180,false)
+                    oGC.fill();
+                    oGC.restore();
+                };
+
+                //简易祖玛文字
+                oGC.save();
+                oGC.font='60px impact';  //设置大小
+                oGC.textBaseline='top';  //居中方式
+                oGC.fillStyle='bull';  //颜色
+                oGC.shadowOffsetX=10; //阴影
+                oGC.shadowOffsetY=10;
+                oGC.shadowColor='red';
+                oGC.shadowBlur=5;
+                var w=oGC.measureText('简易祖玛').width; //文字
+                var h=60;
+                oGC.fillText('简易祖玛',(oC.width-w)/2,450);
+                oGC.restore();
+                oGC.save();
+                //设置字体样式
+                oGC.font = "30px Arial";
+                //设置字体填充颜色
+                oGC.fillStyle = "black";
+                //从坐标点(50,50)开始绘制文字
+                oGC.fillText("ChangJun@China", 180, 580);
+                oGC.restore();
+
+            },1000/60);
+            //开启定时器、将球循环发出
+             setInterval(function () {
+             for(var i=0;i<ball.length;i++){
+             ball[i].num++;
+
+             if(ball[i].num==270){ //规定开始坐标和结束坐标
+             ball[i].r=150;
+             ball[i].startX=250;
+             ball[i].startY=50;
+             };
+
+             if(ball[i].num==270+180){   //判断当小球的坐标到达终点的时候游戏结束
+             alert('游戏结束');
+             window.location.reload();  //刷新页面
+             }
+
+             ball[i].x=Math.sin(ball[i].num*Math.PI/180)*ball[i].r+ball[i].startX;
+             ball[i].y=ball[i].r-Math.cos(ball[i].num*Math.PI/180)*ball[i].r+ball[i].startY;
+             }
+
+              for(var i=0;i<bullet.length;i++){
+                 bullet[i].x=bullet[i].x+bullet[i].sX;
+                 bullet[i].y=bullet[i].y+bullet[i].sY;
+              }
+                 //碰撞检测、消失
+
+                 for(var i=0;i<bullet.length;i++){
+
+                     for(var j=0;j<ball.length;j++){
+                        if (pz(bullet[i].x,bullet[i].y,ball[j].x,ball[j].y)){
+                            //两球相撞奖子弹消除一个、小球消除一个、
+                            bullet.splice(i,1);
+                            ball.splice(j,1);
+                            //循环可能会出问题，退出循环
+                            break;
+                        }
+                     }
+
+                 }
+
+             },30);
+            //用来存放球的数组
+             var ball=[];
+             setInterval(function () {
+             ball.push({
+             x:300,
+             y:0,
+             r:200,
+             num:0,
+             startX:300,
+             startY:0
+
+             });
+             },350);
+
+            var iRotate=0;
+            oC.onmousemove=function (ev) {
+                //获取坐标
+                //小青蛙跟着鼠标的转动转动
+                var ev=ev||window.event;
+                var x=ev.clientX-oC.offsetLeft;
+                var y=ev.clientY-oC.offsetTop;
+                var a=x-300;
+                var b=y-200;
+                var c=Math.sqrt(a*a+b*b);
+                if (a>0&&b>0){
+                    iRotate=Math.asin(b/c)+90*Math.PI/180;
+                }else if (a>0){
+                    iRotate=Math.asin(a/c);
+                }
+                if (a<0&&b>0){
+                    iRotate=-(Math.asin(b/c)+90*Math.PI/180);
+                }else if (a<0){
+                    iRotate=Math.asin(a/c);
+                }
+            };
+            var bullet=[];
+            oC.onmousedown=function (ev) {
+                //获取当前的坐标
+                var ev=ev||window.event;
+                var x=ev.clientX-oC.offsetLeft;
+                var y=ev.clientY-oC.offsetTop;
+                var a=x-300;
+                var b=y-200;
+                var c=Math.sqrt(a*a+b*b);
+
+                var speed=5;  //子弹速度
+
+                var sX=speed*a/c;
+                var sY=speed*b/c;
+
+                bullet.push({
+                    x:300,
+                    y:200,
+                    sX:sX,
+                    sY:sY,
+                });
+
+            };
+        };
+
+        //小球碰撞的判断
+        function pz(x1,y1,x2,y2) {
+
+            var a=x1-x2;
+            var b=y1-y2;
+            var c=Math.sqrt(a*a+b*b);
+
+            if(c<40){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        
+
+
+
+    };
+</script>
+</html>
